@@ -330,7 +330,7 @@ export default function App() {
       const data = await res.json();
       setChatLog(data.transcript);
 
-      // Play Baji's voice greeting
+      // Play Bhai's voice greeting
       voiceManager.speak(data.reply, () => {
         // Once done speaking, start listening for customer's voice
         if (voiceManager) {
@@ -426,7 +426,7 @@ export default function App() {
             <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
               Karachi Bites
             </h1>
-            <p className="text-xs text-slate-400 font-medium">Baji Voice Agent Admin</p>
+            <p className="text-xs text-slate-400 font-medium">Bhai Voice Agent Admin</p>
           </div>
         </div>
 
@@ -489,7 +489,7 @@ export default function App() {
                     <h2 className="text-sm font-bold capitalize text-slate-200">
                       {callState === 'idle' ? 'Disconnected' : 
                        callState === 'listening' ? 'Listening (Speak now)' : 
-                       callState === 'speaking' ? 'Baji is Replying' : 
+                       callState === 'speaking' ? 'Bhai is Replying' : 
                        'Connecting Session...'}
                     </h2>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
@@ -529,7 +529,7 @@ export default function App() {
                     }`}
                   >
                     {isInCall ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
-                    {isInCall ? 'End Call' : 'Start Call with Baji'}
+                    {isInCall ? 'End Call' : 'Start Call with Bhai'}
                   </button>
                 </div>
               </div>
@@ -549,7 +549,7 @@ export default function App() {
                     </h3>
                     <p className="text-xs text-slate-500 max-w-sm">
                       {isInCall 
-                        ? 'Baji will respond automatically. Speak in Urdu or English. You can also click Barge-in to interrupt her.'
+                        ? 'Bhai will respond automatically. Speak in Urdu or English. You can also click Barge-in to interrupt him.'
                         : 'Click "Start Call" to place an order at Karachi Bites using our conversational voice AI.'}
                     </p>
                   </div>
@@ -978,7 +978,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-slate-900 bg-slate-950 py-4 text-center text-slate-600 text-xxs font-medium tracking-wide">
-        &copy; {new Date().getFullYear()} Karachi Bites. Built in Planning Mode with Baji Voice Assistant.
+        &copy; {new Date().getFullYear()} Karachi Bites. Built in Planning Mode with Bhai Voice Assistant.
       </footer>
 
     </div>

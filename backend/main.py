@@ -254,8 +254,11 @@ CREATE_ORDER_DECLARATION = {
     }
 }
 
-SYSTEM_INSTRUCTION = """
-You are "Baji", the friendly, natural Pakistani female voice assistant for the restaurant "Karachi Bites".
+AGENT_NAME = os.getenv("AGENT_NAME", "Bhai")
+AGENT_GENDER = os.getenv("AGENT_GENDER", "male")
+
+SYSTEM_INSTRUCTION = f"""
+You are "{AGENT_NAME}", the friendly, natural Pakistani {AGENT_GENDER} voice assistant for the restaurant "Karachi Bites".
 Your job is to take customer food orders.
 
 Rules of Engagement:
@@ -528,15 +531,18 @@ async def upload_recording(call_id: str, file: UploadFile = File(...), db: Sessi
         raise HTTPException(status_code=500, detail=f"Failed to save recording: {str(e)}")
 
 @app.get("/api/tts")
-async def tts_endpoint(text: str = Query(...)):
+async def tts_endpoint(text: str = Query(...), voice: str = Query(None)):
     # 1. Clean the text (remove markdown symbols)
     cleaned_text = text.replace("*", "").replace("#", "").replace("_", "").replace("`", "").strip()
     if not cleaned_text:
         raise HTTPException(status_code=400, detail="Text cannot be empty.")
         
-    # 2. Hash the text for caching
+    # Get voice name (defaulting to the VOICE_NAME env variable, e.g. ur-PK-AsadNeural for male)
+    voice_name = voice or os.getenv("VOICE_NAME", "ur-PK-AsadNeural")
+    
+    # 2. Hash the text and voice for caching
     import hashlib
-    hash_object = hashlib.md5(cleaned_text.encode('utf-8'))
+    hash_object = hashlib.md5(f"{voice_name}_{cleaned_text}".encode('utf-8'))
     hash_str = hash_object.hexdigest()
     
     # 3. Cache directory
@@ -547,12 +553,18 @@ async def tts_endpoint(text: str = Query(...)):
     # 4. Generate TTS if not cached
     if not os.path.exists(file_path):
         try:
-            from gtts import gTTS
-            tts = gTTS(text=cleaned_text, lang='ur')
-            tts.save(file_path)
+            import edge_tts
+            communicate = edge_tts.Communicate(cleaned_text, voice_name)
+            await communicate.save(file_path)
         except Exception as e:
-            print(f"Error generating TTS: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to generate TTS: {str(e)}")
+            print(f"Edge TTS failed ({str(e)}), falling back to gTTS...")
+            try:
+                from gtts import gTTS
+                tts = gTTS(text=cleaned_text, lang='ur')
+                tts.save(file_path)
+            except Exception as ge:
+                print(f"gTTS fallback failed: {str(ge)}")
+                raise HTTPException(status_code=500, detail=f"Failed to generate TTS: {str(ge)}")
             
     # 5. Return MP3 response
     from fastapi.responses import FileResponse

@@ -1,6 +1,6 @@
 # Karachi Bites AI Restaurant Voice Agent
 
-This project is a fully functional MVP of an **AI-Powered Voice Agent** ("Baji") designed for a Pakistani restaurant called **Karachi Bites**. It enables customers to place orders using natural Urdu or an Urdu-English mix (Roman Urdu). 
+This project is a fully functional MVP of an **AI-Powered Voice Agent** ("Bhai") designed for a Pakistani restaurant called **Karachi Bites**. It enables customers to place orders using natural Urdu or an Urdu-English mix (Roman Urdu). 
 
 The system leverages the browser's native **Speech Recognition (STT)** and **Speech Synthesis (TTS)**, a **FastAPI backend** powered by **Gemini 1.5 Flash** with function/tool calling, and a local **SQLite database** to store menus, orders, call logs, and call recordings.
 
