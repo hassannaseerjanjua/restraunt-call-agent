@@ -324,7 +324,7 @@ export default function App() {
         },
         body: JSON.stringify({
           session_id: newCallId,
-          message: "السلام علیکم! (Greeting)"
+          message: "[Start Call] (Greeting)"
         })
       });
       const data = await res.json();
@@ -957,17 +957,29 @@ export default function App() {
                     ))}
 
                     {/* Bubbles */}
-                    {textParts.map((part, pIdx) => (
-                      <div key={pIdx} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow ${
-                          isUser 
-                            ? 'bg-indigo-650 text-white rounded-br-none' 
-                            : 'bg-slate-850 text-slate-100 rounded-bl-none border border-slate-800'
-                        }`}>
-                          {part.text}
+                    {textParts.map((part, pIdx) => {
+                      const isGreetingPrompt = isUser && (part.text?.includes("(Greeting)") || part.text === "START_CALL_GREETING");
+                      if (isGreetingPrompt) {
+                        return (
+                          <div key={pIdx} className="flex justify-center my-1.5">
+                            <span className="px-2.5 py-0.5 bg-emerald-950/60 border border-emerald-900/40 rounded-full text-xxs font-semibold text-emerald-400">
+                              📞 Call Connected
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={pIdx} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs shadow ${
+                            isUser 
+                              ? 'bg-indigo-650 text-white rounded-br-none' 
+                              : 'bg-slate-850 text-slate-100 rounded-bl-none border border-slate-800'
+                          }`}>
+                            {part.text}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })}
