@@ -129,6 +129,7 @@ export class VoiceManager {
     // Stop speaking and listening first
     this.cancelSpeech();
     this.stopListening();
+    this.stopRingtone();
     
     this.isSpeaking = true;
     this.onStateChange('speaking');
@@ -259,6 +260,90 @@ export class VoiceManager {
     } catch (e) {
       console.error("Failed to upload recording", e);
       return null;
+    }
+  }
+
+  // --- RINGTONE SYNTHESIZER ---
+  private ringAudioCtx: AudioContext | null = null;
+  private ringOsc1: OscillatorNode | null = null;
+  private ringOsc2: OscillatorNode | null = null;
+  private ringGainNode: GainNode | null = null;
+  private ringIntervalId: any = null;
+
+  public startRingtone() {
+    this.stopRingtone();
+    
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    
+    try {
+      this.ringAudioCtx = new AudioContextClass();
+      this.ringOsc1 = this.ringAudioCtx.createOscillator();
+      this.ringOsc2 = this.ringAudioCtx.createOscillator();
+      this.ringGainNode = this.ringAudioCtx.createGain();
+      
+      this.ringOsc1.type = 'sine';
+      this.ringOsc1.frequency.value = 400;
+      this.ringOsc2.type = 'sine';
+      this.ringOsc2.frequency.value = 450;
+      
+      this.ringOsc1.connect(this.ringGainNode);
+      this.ringOsc2.connect(this.ringGainNode);
+      this.ringGainNode.connect(this.ringAudioCtx.destination);
+      
+      this.ringGainNode.gain.setValueAtTime(0, this.ringAudioCtx.currentTime);
+      
+      this.ringOsc1.start(0);
+      this.ringOsc2.start(0);
+      
+      const ringVolume = 0.08; // moderate volume
+      
+      const playRingCycle = () => {
+        if (!this.ringAudioCtx || !this.ringGainNode) return;
+        const now = this.ringAudioCtx.currentTime;
+        
+        // Ring 1: 0.4s duration
+        this.ringGainNode.gain.setValueAtTime(0, now);
+        this.ringGainNode.gain.linearRampToValueAtTime(ringVolume, now + 0.05);
+        this.ringGainNode.gain.setValueAtTime(ringVolume, now + 0.4);
+        this.ringGainNode.gain.linearRampToValueAtTime(0, now + 0.45);
+        
+        // Ring 2: starts at 0.6s, duration 0.4s
+        this.ringGainNode.gain.setValueAtTime(0, now + 0.6);
+        this.ringGainNode.gain.linearRampToValueAtTime(ringVolume, now + 0.65);
+        this.ringGainNode.gain.setValueAtTime(ringVolume, now + 1.0);
+        this.ringGainNode.gain.linearRampToValueAtTime(0, now + 1.05);
+      };
+      
+      playRingCycle();
+      this.ringIntervalId = setInterval(playRingCycle, 3000);
+      console.log("VoiceManager: Ringtone started.");
+    } catch (e) {
+      console.error("Failed to start ringtone synthesis", e);
+    }
+  }
+
+  public stopRingtone() {
+    if (this.ringIntervalId) {
+      clearInterval(this.ringIntervalId);
+      this.ringIntervalId = null;
+    }
+    try {
+      if (this.ringOsc1) {
+        this.ringOsc1.stop();
+        this.ringOsc1 = null;
+      }
+      if (this.ringOsc2) {
+        this.ringOsc2.stop();
+        this.ringOsc2 = null;
+      }
+      if (this.ringAudioCtx) {
+        this.ringAudioCtx.close();
+        this.ringAudioCtx = null;
+      }
+      console.log("VoiceManager: Ringtone stopped.");
+    } catch (e) {
+      // already stopped or not started
     }
   }
 }

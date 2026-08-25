@@ -315,6 +315,9 @@ export default function App() {
     // Start audio recording
     await voiceManager.startRecording();
 
+    // Start ringtone
+    voiceManager.startRingtone();
+
     // Greet Customer
     try {
       const res = await fetch('/api/chat', {
@@ -339,6 +342,7 @@ export default function App() {
       });
     } catch (e) {
       console.error("Greeting call failed", e);
+      voiceManager.stopRingtone();
       setCallState('idle');
       setIsInCall(false);
     }
@@ -347,6 +351,7 @@ export default function App() {
   const endCall = async () => {
     setIsInCall(false);
     setCallState('idle');
+    voiceManager.stopRingtone();
     voiceManager.cancelSpeech();
     voiceManager.stopListening();
     
