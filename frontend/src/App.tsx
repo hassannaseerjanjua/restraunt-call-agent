@@ -3,7 +3,7 @@ import {
   Phone, PhoneOff, Mic, Volume2, Database, ShoppingBag, 
   History, User, MapPin, 
   Utensils, Calendar, X, Play, Pause, RefreshCw, CheckCircle2, ChevronRight
-} from 'lucide-react';
+} from './icons';
 import { VoiceManager } from './voice';
 
 // Type definitions
@@ -93,9 +93,17 @@ export default function App() {
   const [selectedCall, setSelectedCall] = useState<CallInfo | null>(null);
   const [currentlyPlayingAudio, setCurrentlyPlayingAudio] = useState<string | null>(null);
 
-  // Available System Voices State
+  // Neural AI Voices (Male & Female)
+  const NEURAL_VOICES = [
+    { id: 'ur-PK-AsadNeural', name: 'Asad (Urdu Pakistan • Male)', gender: 'Male' },
+    { id: 'hi-IN-MadhurNeural', name: 'Madhur (Hindi/Urdu • Male)', gender: 'Male' },
+    { id: 'ur-PK-UzmaNeural', name: 'Uzma (Urdu Pakistan • Female)', gender: 'Female' },
+    { id: 'hi-IN-SwaraNeural', name: 'Swara (Hindi/Urdu • Female)', gender: 'Female' },
+  ];
+
+  // Available Voices State - Default to Asad (Urdu Male)
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('');
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string>('ur-PK-AsadNeural');
   
   const chatEndRef = useRef<HTMLDivElement>(null);
   const audioPlayersRef = useRef<{ [key: string]: HTMLAudioElement }>({});
@@ -112,6 +120,9 @@ export default function App() {
     voiceManager.onStateChange = (state) => {
       setCallState(state);
     };
+
+    // Initialize with default male voice
+    voiceManager.setSelectedVoice('ur-PK-AsadNeural');
 
     voiceManager.onSpeechEnd = async (text) => {
       if (!isInCall || !callId) return;
@@ -160,29 +171,12 @@ export default function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatLog, liveTranscript]);
 
-  // Load and update available system voices
+  // Load available system voices
   useEffect(() => {
     const updateVoices = () => {
       if ('speechSynthesis' in window) {
         const voiceList = window.speechSynthesis.getVoices();
         setVoices(voiceList);
-        
-        // Find default or first Urdu/Hindi voice, or fallback to first voice
-        const defaultUrduHi = voiceList.find(v => 
-          v.lang.toLowerCase().startsWith('ur') || 
-          v.name.toLowerCase().includes('urdu') ||
-          v.name.toLowerCase().includes('pakistan') ||
-          v.lang.toLowerCase().startsWith('hi') || 
-          v.name.toLowerCase().includes('hindi')
-        );
-        
-        if (defaultUrduHi) {
-          setSelectedVoiceName(defaultUrduHi.name);
-          voiceManager.setSelectedVoice(defaultUrduHi.name);
-        } else if (voiceList.length > 0) {
-          setSelectedVoiceName(voiceList[0].name);
-          voiceManager.setSelectedVoice(voiceList[0].name);
-        }
       }
     };
 
@@ -502,13 +496,24 @@ export default function App() {
                       <select
                         value={selectedVoiceName}
                         onChange={(e) => setSelectedVoiceName(e.target.value)}
-                        className="bg-slate-950/85 border border-slate-800 text-slate-300 rounded-lg px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[200px] cursor-pointer"
+                        className="bg-slate-950/85 border border-slate-800 text-slate-200 rounded-lg px-2 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[220px] cursor-pointer"
                       >
-                        {voices.map((v, i) => (
-                          <option key={i} value={v.name}>
-                            {v.name.replace("Microsoft", "MS").replace("Google", "G")} ({v.lang}) {v.localService ? '• Local' : '• Cloud'}
-                          </option>
-                        ))}
+                        <optgroup label="✨ Neural AI Voices (Default: Male)">
+                          {NEURAL_VOICES.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {v.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                        {voices.length > 0 && (
+                          <optgroup label="System / Browser Voices">
+                            {voices.map((v, i) => (
+                              <option key={i} value={v.name}>
+                                {v.name.replace("Microsoft", "MS").replace("Google", "G")} ({v.lang})
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -534,7 +539,7 @@ export default function App() {
                     }`}
                   >
                     {isInCall ? <PhoneOff className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
-                    {isInCall ? 'End Call' : 'Start Call with Bhai'}
+                    {isInCall ? 'End Call' : 'Start Call'}
                   </button>
                 </div>
               </div>

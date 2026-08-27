@@ -149,9 +149,10 @@ export class VoiceManager {
       return;
     }
 
-    // Call our backend TTS endpoint
-    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanedText)}`;
-    console.log("VoiceManager: Playing backend TTS audio from:", ttsUrl);
+    // Call our backend TTS endpoint with chosen male neural voice by default
+    const voiceToUse = this.selectedVoiceName || 'ur-PK-AsadNeural';
+    const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanedText)}&voice=${encodeURIComponent(voiceToUse)}`;
+    console.log("VoiceManager: Playing backend TTS audio with voice:", voiceToUse, "from:", ttsUrl);
 
     try {
       this.ttsAudio = new Audio(ttsUrl);
